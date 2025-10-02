@@ -1,0 +1,5 @@
+{
+  "name": "Open AI Prompt Packs",
+  "description": "A tool to browse and copy categorized prompts for various professional roles, designed for immediate use with chatbots like Gemini. Includes a feature to switch between different Gemini models.",
+  "requestFramePermissions": []
+}
