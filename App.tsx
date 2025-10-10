@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import Header from './components/Header';
 import PromptLibraryPage from './pages/PromptLibraryPage';
-import PromptStudio from './pages/PromptSpaceStudio';
+import PromptStudio from './pages/PromptStudio';
+import Footer from './components/Footer';
 
 export type Page = 'library' | 'studio';
 export type Language = 'en' | 'ch';
@@ -18,10 +19,11 @@ const App: React.FC = () => {
         language={language}
         setLanguage={setLanguage}
       />
-      <div className="flex-1 min-h-0">
+      <main className="flex-1 min-h-0">
         {page === 'library' && <PromptLibraryPage language={language} />}
         {page === 'studio' && <PromptStudio language={language} />}
-      </div>
+      </main>
+      <Footer language={language} />
     </div>
   );
 };

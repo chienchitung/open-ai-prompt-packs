@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { PromptItem } from '../types';
 import { Language } from '../App';
@@ -19,11 +20,18 @@ const CheckIcon: React.FC<{className?: string}> = ({className}) => (
     </svg>
 );
 
+const ExternalLinkIcon: React.FC<{className?: string}> = ({className}) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+    </svg>
+);
+
 const text = {
     chPrompt: { en: 'Chinese Prompt', ch: '中文提示詞' },
-    enPrompt: { en: 'English Prompt', ch: 'English Prompt' },
+    enPrompt: { en: 'English Prompt', ch: '英文提示詞' },
     copy: { en: 'Copy', ch: '複製' },
     copied: { en: 'Copied!', ch: '已複製!' },
+    openInChatGPT: { en: 'Open in ChatGPT', ch: '在 ChatGPT 中開啟' },
 };
 
 const PromptCard: React.FC<PromptCardProps> = ({ prompt, language }) => {
@@ -57,13 +65,25 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, language }) => {
                 <div className="flex flex-col">
                     <div className="flex justify-between items-center mb-2">
                         <h4 className="text-sm font-bold text-zinc-500">{text.chPrompt[language]}</h4>
-                        <button 
-                            onClick={() => handleCopy(prompt.chinesePrompt, 'ch')}
-                            className="flex items-center px-3 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md transition-all duration-200 text-xs"
-                        >
-                            {copied === 'ch' ? <CheckIcon className="w-4 h-4 mr-1 text-emerald-500" /> : <CopyIcon className="w-4 h-4 mr-1" />}
-                            {copied === 'ch' ? text.copied[language] : text.copy[language]}
-                        </button>
+                        <div className="flex items-center space-x-2">
+                            <a
+                                href={`https://chat.openai.com/?prompt=${encodeURIComponent(prompt.chinesePrompt)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md transition-all duration-200"
+                                aria-label={text.openInChatGPT[language]}
+                                title={text.openInChatGPT[language]}
+                            >
+                                <ExternalLinkIcon className="w-4 h-4" />
+                            </a>
+                            <button 
+                                onClick={() => handleCopy(prompt.chinesePrompt, 'ch')}
+                                className="flex items-center px-3 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md transition-all duration-200 text-xs"
+                            >
+                                {copied === 'ch' ? <CheckIcon className="w-4 h-4 mr-1 text-emerald-500" /> : <CopyIcon className="w-4 h-4 mr-1" />}
+                                {copied === 'ch' ? text.copied[language] : text.copy[language]}
+                            </button>
+                        </div>
                     </div>
                     <div className="bg-zinc-100 p-3 rounded-md text-zinc-700 text-sm whitespace-pre-wrap flex-grow font-mono">
                         {prompt.chinesePrompt}
@@ -74,13 +94,25 @@ const PromptCard: React.FC<PromptCardProps> = ({ prompt, language }) => {
                 <div className="flex flex-col">
                     <div className="flex justify-between items-center mb-2">
                         <h4 className="text-sm font-bold text-zinc-500">{text.enPrompt[language]}</h4>
-                        <button 
-                            onClick={() => handleCopy(prompt.englishPrompt, 'en')}
-                            className="flex items-center px-3 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md transition-all duration-200 text-xs"
-                        >
-                            {copied === 'en' ? <CheckIcon className="w-4 h-4 mr-1 text-emerald-500" /> : <CopyIcon className="w-4 h-4 mr-1" />}
-                            {copied === 'en' ? text.copied['en'] : text.copy['en']}
-                        </button>
+                        <div className="flex items-center space-x-2">
+                             <a
+                                href={`https://chat.openai.com/?prompt=${encodeURIComponent(prompt.englishPrompt)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="p-1.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md transition-all duration-200"
+                                aria-label={text.openInChatGPT[language]}
+                                title={text.openInChatGPT[language]}
+                            >
+                                <ExternalLinkIcon className="w-4 h-4" />
+                            </a>
+                            <button 
+                                onClick={() => handleCopy(prompt.englishPrompt, 'en')}
+                                className="flex items-center px-3 py-1 bg-zinc-100 hover:bg-zinc-200 text-zinc-700 rounded-md transition-all duration-200 text-xs"
+                            >
+                                {copied === 'en' ? <CheckIcon className="w-4 h-4 mr-1 text-emerald-500" /> : <CopyIcon className="w-4 h-4 mr-1" />}
+                                {copied === 'en' ? text.copied[language] : text.copy[language]}
+                            </button>
+                        </div>
                     </div>
                     <div className="bg-zinc-100 p-3 rounded-md text-zinc-700 text-sm whitespace-pre-wrap flex-grow font-mono">
                         {prompt.englishPrompt}

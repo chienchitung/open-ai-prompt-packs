@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Modality } from "@google/genai";
 import { GEMINI_MODELS } from '../constants';
 import { Language } from '../App';
 
@@ -26,15 +27,32 @@ const text = {
     videoGenerationProgress: { en: 'Video generation in progress...', ch: '影片生成中...' },
     videoGenerationFetching: { en: 'Video generated. Fetching file...', ch: '影片已生成。正在獲取檔案...' },
     errorPrompt: { en: 'Please enter a prompt.', ch: '請輸入提示詞。' },
+    imageUploadLabel: { en: 'Upload Image for Editing', ch: '上傳圖片進行編輯' },
+    errorImageUpload: { en: 'Please upload an image for editing.', ch: '請上傳圖片進行編輯。'},
+    errorNoContent: { en: 'The model did not return any content.', ch: '模型未返回任何內容。' },
+};
+
+const fileToBase64 = (file: File): Promise<{ mimeType: string, data: string }> => {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => {
+            const result = reader.result as string;
+            const data = result.split(',')[1];
+            resolve({ mimeType: file.type, data });
+        };
+        reader.onerror = error => reject(error);
+    });
 };
 
 const PromptStudio: React.FC<PromptStudioProps> = ({ language }) => {
     const [promptText, setPromptText] = useState('');
-    const [response, setResponse] = useState<ResponseData | null>(null);
+    const [response, setResponse] = useState<ResponseData[] | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('');
     const [error, setError] = useState<string | null>(null);
     const [selectedModel, setSelectedModel] = useState<string>(GEMINI_MODELS[0]);
+    const [imageFile, setImageFile] = useState<File | null>(null);
 
     const handleGenerate = async () => {
         if (!promptText.trim()) {
@@ -54,7 +72,7 @@ const PromptStudio: React.FC<PromptStudioProps> = ({ language }) => {
                     model: selectedModel,
                     contents: promptText,
                 });
-                setResponse({ type: 'text', content: result.text });
+                setResponse([{ type: 'text', content: result.text }]);
             } else if (selectedModel === 'imagen-4.0-generate-001') {
                 const result = await ai.models.generateImages({
                     model: selectedModel,
@@ -64,9 +82,9 @@ const PromptStudio: React.FC<PromptStudioProps> = ({ language }) => {
                 if (result.generatedImages && result.generatedImages.length > 0) {
                     const base64ImageBytes = result.generatedImages[0].image.imageBytes;
                     const imageUrl = `data:image/png;base64,${base64ImageBytes}`;
-                    setResponse({ type: 'image', content: imageUrl });
+                    setResponse([{ type: 'image', content: imageUrl }]);
                 } else {
-                    throw new Error("Image generation failed to return an image.");
+                    throw new Error(`Image generation failed. The model did not return an image. Please try a different prompt.`);
                 }
             } else if (selectedModel === 'veo-2.0-generate-001') {
                 setLoadingMessage(text.videoGenerationStart[language]);
@@ -96,10 +114,51 @@ const PromptStudio: React.FC<PromptStudioProps> = ({ language }) => {
                     if (!videoResponse.ok) throw new Error(`Failed to fetch video: ${videoResponse.statusText}`);
                     const blob = await videoResponse.blob();
                     const videoUrl = URL.createObjectURL(blob);
-                    setResponse({ type: 'video', content: videoUrl });
+                    setResponse([{ type: 'video', content: videoUrl }]);
                 } else {
                     throw new Error("Video generation completed, but no video URI was found.");
                 }
+            } else if (selectedModel === 'gemini-2.5-flash-image-preview') {
+                if (!imageFile) {
+                    throw new Error(text.errorImageUpload[language]);
+                }
+                const { mimeType, data: base64ImageData } = await fileToBase64(imageFile);
+
+                const imagePart = {
+                    inlineData: {
+                        data: base64ImageData,
+                        mimeType: mimeType,
+                    },
+                };
+                const textPart = { text: promptText };
+
+                const result = await ai.models.generateContent({
+                    model: selectedModel,
+                    contents: {
+                        parts: [imagePart, textPart],
+                    },
+                    config: {
+                        responseModalities: [Modality.IMAGE, Modality.TEXT],
+                    },
+                });
+
+                const responseParts: ResponseData[] = [];
+                if (result.candidates?.[0]?.content?.parts) {
+                    for (const part of result.candidates[0].content.parts) {
+                        if (part.text) {
+                            responseParts.push({ type: 'text', content: part.text });
+                        } else if (part.inlineData) {
+                            const base64ImageBytes = part.inlineData.data;
+                            const imageUrl = `data:${part.inlineData.mimeType};base64,${base64ImageBytes}`;
+                            responseParts.push({ type: 'image', content: imageUrl });
+                        }
+                    }
+                }
+                
+                if (responseParts.length === 0) {
+                     throw new Error(text.errorNoContent[language]);
+                }
+                setResponse(responseParts);
             }
 
         } catch (e) {
@@ -110,6 +169,13 @@ const PromptStudio: React.FC<PromptStudioProps> = ({ language }) => {
             setLoadingMessage('');
         }
     };
+    
+    // Reset image file when model changes away from image editing model
+    React.useEffect(() => {
+        if (selectedModel !== 'gemini-2.5-flash-image-preview') {
+            setImageFile(null);
+        }
+    }, [selectedModel]);
 
     return (
         <main className="h-full p-6 lg:p-8 overflow-y-auto text-zinc-900">
@@ -134,6 +200,23 @@ const PromptStudio: React.FC<PromptStudioProps> = ({ language }) => {
                         ))}
                     </select>
                 </div>
+                
+                {selectedModel === 'gemini-2.5-flash-image-preview' && (
+                    <div className="bg-white border border-zinc-200 rounded-lg p-4 mb-6">
+                        <label htmlFor="image-upload" className="block text-sm font-medium text-zinc-700 mb-2">
+                            {text.imageUploadLabel[language]}
+                        </label>
+                        <input
+                            type="file"
+                            id="image-upload"
+                            accept="image/*"
+                            onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)}
+                            className="block w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100"
+                        />
+                        {imageFile && <img src={URL.createObjectURL(imageFile)} alt="Preview" className="mt-4 max-h-48 rounded-md" />}
+                    </div>
+                )}
+
 
                 <div className="mb-6">
                     <textarea
@@ -170,19 +253,26 @@ const PromptStudio: React.FC<PromptStudioProps> = ({ language }) => {
                         <div className="bg-white border border-zinc-200 rounded-lg p-4 text-base font-mono min-h-[150px]">
                             {isLoading && <p className="text-zinc-500 text-center">{loadingMessage || text.generatingResponse[language]}</p>}
                             {error && <p className="text-red-500">{error}</p>}
-                            {response && (
-                                response.type === 'text' ? (
-                                    <p className="text-zinc-800 whitespace-pre-wrap">{response.content}</p>
-                                ) : response.type === 'image' ? (
-                                    <div className="flex justify-center">
-                                        <img src={response.content} alt="Generated" className="max-w-full max-h-[512px] rounded-md" />
-                                    </div>
-                                ) : response.type === 'video' ? (
-                                    <div className="flex justify-center">
-                                        <video src={response.content} controls className="max-w-full max-h-[512px] rounded-md" />
-                                    </div>
-                                ) : null
-                            )}
+                            {response && response.map((res, index) => {
+                                switch (res.type) {
+                                    case 'text':
+                                        return <p key={index} className="text-zinc-800 whitespace-pre-wrap mb-4">{res.content}</p>;
+                                    case 'image':
+                                        return (
+                                            <div key={index} className="flex justify-center mb-4">
+                                                <img src={res.content} alt="Generated" className="max-w-full max-h-[512px] rounded-md" />
+                                            </div>
+                                        );
+                                    case 'video':
+                                        return (
+                                            <div key={index} className="flex justify-center mb-4">
+                                                <video src={res.content} controls className="max-w-full max-h-[512px] rounded-md" />
+                                            </div>
+                                        );
+                                    default:
+                                        return null;
+                                }
+                            })}
                         </div>
                     </div>
                 )}

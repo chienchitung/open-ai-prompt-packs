@@ -1,6 +1,6 @@
 import { PromptCategory } from './types';
 
-export const GEMINI_MODELS = ['gemini-2.5-flash', 'imagen-4.0-generate-001', 'veo-2.0-generate-001'];
+export const GEMINI_MODELS = ['gemini-2.5-flash', 'imagen-4.0-generate-001', 'veo-2.0-generate-001', 'gemini-2.5-flash-image-preview'];
 
 export const PROMPT_CATEGORIES: PromptCategory[] = [
     {
@@ -72,7 +72,7 @@ export const PROMPT_CATEGORIES: PromptCategory[] = [
                 ]
             },
             {
-                title: "競爭對手情報分析 (Competitive intelligence & enablement)",
+                title: "競爭對手情报分析 (Competitive intelligence & enablement)",
                 prompts: [
                     { scenario: "製作競爭策略 (Create battlecard for competitor)", chinesePrompt: "為［競品名稱］建立作戰卡。使用以下筆記：［插入定位資料］。請包含優勢、劣勢、我們如何取勝、與快速話術。以表格格式輸出。", englishPrompt: "Create a battlecard for [competitor name]. Use these notes: [insert positioning data]. Include strengths, weaknesses, how we win, and quick talk track. Output as table format." },
                     { scenario: "競品定位分析 (Competitive positioning analysis)", chinesePrompt: "我在準備［競品名稱］的競品作戰卡。請研究其定價模式、產品定位、近期客戶勝／敗案例、與銷售方式。再依我們的這些強項比較：［插入］。輸出一頁摘要，附引用。", englishPrompt: "I’m preparing a competitive battlecard for [competitor name]. Research their pricing model, product positioning, recent customer wins/losses, and sales motion. Compare it to ours based on these strengths: [insert]. Output a 1-page summary with citations." },
@@ -273,7 +273,7 @@ export const PROMPT_CATEGORIES: PromptCategory[] = [
                 title: "工作環境體驗與回饋 (Workspace experience and feedback)",
                 prompts: [
                     { scenario: "起草員工調查問題 (Draft employee survey questions)", chinesePrompt: "撰寫 6–8 題用於衡量［例如：歸屬感、對主管的信任、工作量平衡］的員工調查問題。問題需中立、易懂。以每行一題呈現，並附建議評分量表。", englishPrompt: "Write 6–8 employee survey questions designed to measure [e.g. belonging, manager trust, workload balance]. Ensure the questions are neutral and easy to understand. Format them as one question per line with rating scale suggestions." },
-                    { scenario: "產生績效評核提問 (Generate performance review prompts)", chinesePrompt: "針對［部門／團隊］設計五個績效評核提問，鼓勵反思、未來目標設定與可行回饋。語氣建設性、以成長為導向。以評核表清單呈現。", englishPrompt: "Develop a set of five questions for performance reviews that encourage reflection, future goal setting, and actionable feedback. Tailor to [function/team], and keep the tone constructive and growth-oriented. Present the questions as a list for a review form." },
+                    { scenario: "產生績效評核提問 (Generate performance review prompts)", chinesePrompt: "針對［部門／團隊］設計五個績效評核提問，鼓勵反思、未來目標設定與可行回饋。語氣建設性、以成長為向。以評核表清單呈現。", englishPrompt: "Develop a set of five questions for performance reviews that encourage reflection, future goal setting, and actionable feedback. Tailor to [function/team], and keep the tone constructive and growth-oriented. Present the questions as a list for a review form." },
                     { scenario: "分析離職調查主題 (Analyze exit survey themes)", chinesePrompt: "檢視以下來自［部門／期間］的離職調查回覆，辨識最常見主題、關切點與情緒走勢。以條列摘要並加入代表性引言。［在此貼上回覆］", englishPrompt: "Review the following employee exit survey responses and identify the top recurring themes, concerns, and sentiment trends. These responses are from [department/timeframe]. Provide a thematic summary with bullet points and representative quotes. [Insert responses here]" },
                     { scenario: "分析員工流失趨勢 (Analyze trends in employee attrition)", chinesePrompt: "分析過去 12 個月的員工流失資料集，聚焦部門、年資與離職原因的模式。摘要重點洞見並提出 2–3 項 HR 行動建議。以條列＋短段落呈現。［上傳 CSV 或貼上表格］", englishPrompt: "Analyze this employee attrition dataset from the last 12 months. Focus on patterns by department, tenure, and exit reasons. Summarize key insights and suggest 2–3 actions HR should consider. Present findings as bullet points followed by a short paragraph. [Upload your CSV or paste table here]" },
                     { scenario: "產出薪酬基準報告 (Generate a compensation benchmarking report)", chinesePrompt: "依內部薪資資料與產業基準，標示角色、性別與職級的薪酬差異。包含平均值、標準差，能夠的話附視覺化圖表。提供給主管閱讀的短摘要。［上傳基準與內部檔案］", englishPrompt: "Based on this internal salary data and industry benchmarks, highlight pay discrepancies by role, gender, and level. Include averages, standard deviation, and a visual if possible. Provide a short summary for leadership review. [Upload benchmark and internal files]" }
